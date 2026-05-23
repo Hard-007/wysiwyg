@@ -1,5 +1,5 @@
 {
-    "name": "hard007/wysiwyg",
+    "name": "hard-007/wysiwyg",
     "description": "A modern, feature-rich WYSIWYG editor package for Laravel 10+",
     "type": "library",
     "keywords": ["laravel", "wysiwyg", "editor", "rich-text", "flexwave"],
