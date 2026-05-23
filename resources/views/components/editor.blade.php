@@ -18,7 +18,7 @@
 <div
     class="fw-wysiwyg-wrapper {{ $class }}"
     data-fw-editor="{{ $editorId }}"
-    data-fw-options="{{ htmlspecialchars($optionsJson, ENT_QUOTES, 'UTF-8') }}"
+    data-fw-options="{{ $optionsJson }}"
 >
     {{-- Hidden textarea that stores the actual HTML value --}}
     <textarea

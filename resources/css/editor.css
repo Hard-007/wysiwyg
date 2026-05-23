@@ -294,7 +294,13 @@
 .fw-editor__content h3,
 .fw-editor__content h4,
 .fw-editor__content h5,
-.fw-editor__content h6 {
+.fw-editor__content h6,
+.fw-editor__preview-inner h1,
+.fw-editor__preview-inner h2,
+.fw-editor__preview-inner h3,
+.fw-editor__preview-inner h4,
+.fw-editor__preview-inner h5,
+.fw-editor__preview-inner h6 {
   font-family: var(--fw-font-ui);
   font-weight: 700;
   line-height: 1.25;
@@ -302,30 +308,42 @@
   color: var(--fw-text);
 }
 
-.fw-editor__content h1 { font-size: 2em; }
-.fw-editor__content h2 { font-size: 1.5em; }
-.fw-editor__content h3 { font-size: 1.25em; }
-.fw-editor__content h4 { font-size: 1.1em; }
-.fw-editor__content h5 { font-size: 1em; }
-.fw-editor__content h6 { font-size: .875em; color: var(--fw-text-muted); }
+.fw-editor__content h1,
+.fw-editor__preview-inner h1 { font-size: 2em; }
+.fw-editor__content h2,
+.fw-editor__preview-inner h2 { font-size: 1.5em; }
+.fw-editor__content h3,
+.fw-editor__preview-inner h3 { font-size: 1.25em; }
+.fw-editor__content h4,
+.fw-editor__preview-inner h4 { font-size: 1.1em; }
+.fw-editor__content h5,
+.fw-editor__preview-inner h5 { font-size: 1em; }
+.fw-editor__content h6,
+.fw-editor__preview-inner h6 { font-size: .875em; color: var(--fw-text-muted); }
 
-.fw-editor__content p  { margin: .75em 0; }
+.fw-editor__content p,
+.fw-editor__preview-inner p { margin: .75em 0; }
 
-.fw-editor__content a {
+.fw-editor__content a,
+.fw-editor__preview-inner a {
   color: var(--fw-accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .fw-editor__content ul,
-.fw-editor__content ol {
+.fw-editor__content ol,
+.fw-editor__preview-inner ul,
+.fw-editor__preview-inner ol {
   padding-left: 1.5em;
   margin: .75em 0;
 }
 
-.fw-editor__content li { margin: .3em 0; }
+.fw-editor__content li,
+.fw-editor__preview-inner li { margin: .3em 0; }
 
-.fw-editor__content blockquote {
+.fw-editor__content blockquote,
+.fw-editor__preview-inner blockquote {
   border-left: 3px solid var(--fw-accent);
   margin: 1em 0;
   padding: .5em 1em;
@@ -335,7 +353,8 @@
   font-style: italic;
 }
 
-.fw-editor__content code {
+.fw-editor__content code,
+.fw-editor__preview-inner code {
   font-family: var(--fw-font-mono);
   font-size: .875em;
   background: var(--fw-bg-code);
@@ -344,7 +363,8 @@
   border: 1px solid var(--fw-border);
 }
 
-.fw-editor__content pre {
+.fw-editor__content pre,
+.fw-editor__preview-inner pre {
   background: var(--fw-bg-code);
   border: 1px solid var(--fw-border);
   border-radius: var(--fw-radius);
@@ -355,14 +375,16 @@
   line-height: 1.6;
 }
 
-.fw-editor__content pre code {
+.fw-editor__content pre code,
+.fw-editor__preview-inner pre code {
   background: none;
   border: none;
   padding: 0;
   font-size: inherit;
 }
 
-.fw-editor__content img {
+.fw-editor__content img,
+.fw-editor__preview-inner img {
   max-width: 100%;
   height: auto;
   border-radius: var(--fw-radius);
@@ -370,7 +392,8 @@
   display: block;
 }
 
-.fw-editor__content hr {
+.fw-editor__content hr,
+.fw-editor__preview-inner hr {
   border: none;
   border-top: 2px solid var(--fw-border);
   margin: 1.5em 0;

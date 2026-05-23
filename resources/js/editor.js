@@ -88,7 +88,7 @@
       });
 
       this.toolbar.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-fw-action]');
+        const btn = e.target.closest('button[data-fw-action]');
         if (!btn) return;
         e.preventDefault();
         this._handleAction(btn.dataset.fwAction, btn);
