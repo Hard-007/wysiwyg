@@ -30,6 +30,9 @@
 
       this._mode = 'editor'; // 'editor' | 'preview' | 'source'
       this._isFullscreen = false;
+      this._modalRestoreFocus = null;
+      this._fullscreenRestoreFocus = null;
+      this._savedRange = null;
 
       this._resolveElements();
       this._initContent();
@@ -77,6 +80,13 @@
     _bindToolbar() {
       if (!this.toolbar) return;
 
+      this.toolbar.addEventListener('mousedown', (e) => {
+        const btn = e.target.closest('button[data-fw-action]');
+        if (btn) {
+          e.preventDefault();
+        }
+      });
+
       this.toolbar.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-fw-action]');
         if (!btn) return;
@@ -88,6 +98,7 @@
       const headingSelect = this.toolbar.querySelector('[data-fw-action="heading"]');
       if (headingSelect) {
         headingSelect.addEventListener('change', () => {
+          this._restoreSavedSelection();
           const val = headingSelect.value;
           if (val === 'p') {
             document.execCommand('formatBlock', false, 'p');
@@ -115,7 +126,7 @@
 
     /* ── Individual action handler ── */
     _handleAction(action, btn) {
-      this.contentEl.focus();
+      this._restoreSavedSelection();
 
       const execMap = {
         bold:              () => document.execCommand('bold'),
@@ -153,6 +164,7 @@
           this._openLinkModal();
           break;
         case 'insertImage':
+          this._saveSelection();
           this.fileInput?.click();
           break;
         case 'togglePreview':
@@ -294,6 +306,7 @@
         .then(data => {
           this._showProgress(false);
           if (data.success) {
+            this._restoreSavedSelection();
             const img = `<img src="${this._escAttr(data.url)}" alt="" loading="lazy">`;
             document.execCommand('insertHTML', false, img);
             this._syncTextarea();
@@ -427,8 +440,14 @@
 
       this.contentEl.addEventListener('input',   sync);
       this.contentEl.addEventListener('keyup',   () => this._updateActiveStates());
-      this.contentEl.addEventListener('mouseup', () => this._updateActiveStates());
-      this.contentEl.addEventListener('focus',   () => this._updateActiveStates());
+      this.contentEl.addEventListener('mouseup', () => {
+        this._saveSelection();
+        this._updateActiveStates();
+      });
+      this.contentEl.addEventListener('focus',   () => {
+        this._saveSelection();
+        this._updateActiveStates();
+      });
 
       // Source textarea → sync on input
       this.sourceEl?.addEventListener('input', () => {
@@ -470,6 +489,28 @@
         }
         this.pathEl.textContent = path.join(' › ');
       } catch {}
+    }
+
+    _saveSelection() {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+
+      const range = sel.getRangeAt(0);
+      if (!this.contentEl?.contains(range.commonAncestorContainer)) return;
+
+      this._savedRange = range.cloneRange();
+    }
+
+    _restoreSavedSelection() {
+      if (!this._savedRange) return false;
+
+      const sel = window.getSelection();
+      if (!sel) return false;
+
+      sel.removeAllRanges();
+      sel.addRange(this._savedRange.cloneRange());
+      this.contentEl?.focus();
+      return true;
     }
 
     /* ── Active state for toolbar buttons ── */
