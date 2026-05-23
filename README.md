@@ -33,7 +33,7 @@ A modern, feature-rich WYSIWYG rich-text editor package for **Laravel 10+** and 
 | Requirement | Version |
 |---|---|
 | PHP | ^8.2 |
-| Laravel | ^10.0 or ^11.0 |
+| Laravel | ^10.0 - ^13.0 |
 | Intervention Image | ^3.0 |
 
 ---
