@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            testbench: '^8.0'
+            label: 'Laravel 10'
+          - php: '8.2'
+            testbench: '^9.0'
+            label: 'Laravel 11'
+          - php: '8.3'
+            testbench: '^10.0'
+            label: 'Laravel 12'
+          - php: '8.3'
+            testbench: '^11.0'
+            label: 'Laravel 13'
+
+    name: PHP ${{ matrix.php }} / ${{ matrix.label }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, mbstring, xml, sqlite3, gd
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: |
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run test suite
+        run: vendor/bin/phpunit
