@@ -19,13 +19,8 @@ class WysiwygHelper
             return strip_tags($html);
         }
 
-        // Build tag string for strip_tags
-        $tagString = '<' . implode('><', $allowedTags) . '>';
-        $html = strip_tags($html, $tagString);
-
-        // Sanitize attributes using DOMDocument
         if (! extension_loaded('dom')) {
-            return $html;
+            return strip_tags($html, '<' . implode('><', $allowedTags) . '>');
         }
 
         $dom = new \DOMDocument();
@@ -33,43 +28,63 @@ class WysiwygHelper
         $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
 
-        $xpath = new \DOMXPath($dom);
+        $this->sanitizeDomNode($dom, $allowedTags, $allowedAttrs);
 
-        foreach ($xpath->query('//*') as $node) {
-            /** @var \DOMElement $node */
-            $tag = strtolower($node->nodeName);
-            $allowed = array_merge($allowedAttrs['*'] ?? [], $allowedAttrs[$tag] ?? []);
+        return $dom->saveHTML() ?: '';
+    }
 
-            $attrsToRemove = [];
-            foreach ($node->attributes as $attr) {
-                if (! in_array($attr->name, $allowed)) {
-                    $attrsToRemove[] = $attr->name;
+    /**
+     * Recursively remove disallowed nodes and unsafe attributes.
+     */
+    protected function sanitizeDomNode(\DOMNode $node, array $allowedTags, array $allowedAttrs): void
+    {
+        for ($index = $node->childNodes->length - 1; $index >= 0; $index--) {
+            $child = $node->childNodes->item($index);
+
+            if (! $child) {
+                continue;
+            }
+
+            if ($child instanceof \DOMElement) {
+                $tag = strtolower($child->nodeName);
+
+                if (! in_array($tag, $allowedTags, true)) {
+                    $node->removeChild($child);
+                    continue;
                 }
 
-                // Block javascript: in href/src
-                if (in_array($attr->name, ['href', 'src'])) {
-                    if (str_starts_with(trim(strtolower($attr->value)), 'javascript:')) {
-                        $attrsToRemove[] = $attr->name;
+                $allowed = array_values(array_unique(array_merge($allowedAttrs['*'] ?? [], $allowedAttrs[$tag] ?? [])));
+
+                if ($child->hasAttributes()) {
+                    $attributesToRemove = [];
+
+                    foreach ($child->attributes as $attribute) {
+                        $name = strtolower($attribute->name);
+                        $value = trim(strtolower($attribute->value));
+
+                        if (! in_array($name, $allowed, true)) {
+                            $attributesToRemove[] = $attribute->name;
+                            continue;
+                        }
+
+                        if (in_array($name, ['href', 'src'], true) && str_starts_with($value, 'javascript:')) {
+                            $attributesToRemove[] = $attribute->name;
+                        }
+                    }
+
+                    foreach ($attributesToRemove as $attributeName) {
+                        $child->removeAttribute($attributeName);
                     }
                 }
+
+                $this->sanitizeDomNode($child, $allowedTags, $allowedAttrs);
+                continue;
             }
 
-            foreach ($attrsToRemove as $attr) {
-                $node->removeAttribute($attr);
+            if ($child instanceof \DOMComment) {
+                $node->removeChild($child);
             }
         }
-
-        $body = $dom->getElementsByTagName('body')->item(0);
-        if (! $body) {
-            return $html;
-        }
-
-        $result = '';
-        foreach ($body->childNodes as $child) {
-            $result .= $dom->saveHTML($child);
-        }
-
-        return $result;
     }
 
     /**
