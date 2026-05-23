@@ -328,4 +328,4 @@ document.querySelectorAll('[data-fw-editor]').forEach(wrapper => {
 
 ## License
 
-MIT — © 2026 FlexWave
+MIT — © 2026 FlexWave / Hard-007
