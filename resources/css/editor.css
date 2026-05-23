@@ -276,6 +276,11 @@
   word-break: break-word;
 }
 
+.fw-editor__content:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--fw-border-focus);
+}
+
 .fw-editor__content:empty::before {
   content: attr(data-placeholder);
   color: var(--fw-text-placeholder);
@@ -380,6 +385,11 @@
   font-size: 16px;
   line-height: 1.75;
   color: var(--fw-text);
+}
+
+.fw-editor__preview:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--fw-border-focus);
 }
 
 .fw-editor__preview-inner { max-width: 100%; }
@@ -535,6 +545,17 @@
 .fw-modal__input:focus {
   border-color: var(--fw-accent);
   box-shadow: var(--fw-shadow-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-toolbar__btn,
+  .fw-toolbar__select,
+  .fw-modal__close,
+  .fw-modal__box,
+  .fw-upload-progress__bar::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .fw-modal__footer {

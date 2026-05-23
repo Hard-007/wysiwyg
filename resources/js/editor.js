@@ -30,6 +30,8 @@
 
       this._mode = 'editor'; // 'editor' | 'preview' | 'source'
       this._isFullscreen = false;
+      this._modalRestoreFocus = null;
+      this._fullscreenRestoreFocus = null;
 
       this._resolveElements();
       this._initContent();
@@ -150,7 +152,7 @@
           this._insertCodeBlock();
           break;
         case 'insertLink':
-          this._openLinkModal();
+          this._openLinkModal(btn);
           break;
         case 'insertImage':
           this.fileInput?.click();
@@ -229,11 +231,35 @@
       const cancelBtn= this.linkModal.querySelector('.fw-modal__cancel');
       const confirmBtn=this.linkModal.querySelector('.fw-modal__confirm');
 
-      const close = () => { this.linkModal.style.display = 'none'; };
+      const close = () => { this._closeLinkModal(); };
 
       backdrop?.addEventListener('click', close);
       closeBtn?.addEventListener('click', close);
       cancelBtn?.addEventListener('click', close);
+
+      this.linkModal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          close();
+          return;
+        }
+
+        if (e.key !== 'Tab') return;
+
+        const focusable = this._getFocusableElements(this.linkModal);
+        if (!focusable.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
 
       confirmBtn?.addEventListener('click', () => {
         const href = this.linkModal.querySelector('[data-field="href"]')?.value?.trim();
@@ -251,17 +277,18 @@
         const displayText = text || href;
         const anchor = `<a href="${this._escAttr(href)}" ${blank ? 'target="_blank" rel="noopener noreferrer"' : ''}>${this._escHtml(displayText)}</a>`;
         document.execCommand('insertHTML', false, anchor);
-        close();
+        this._closeLinkModal();
         this._syncTextarea();
         this._dispatch('fw:linkInserted', { href, text: displayText, blank });
       });
     }
 
-    _openLinkModal() {
+    _openLinkModal(triggerEl = null) {
       if (!this.linkModal) return;
       // Save current selection
       const sel = window.getSelection();
       this._savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+      this._modalRestoreFocus = triggerEl || document.activeElement;
 
       const textInput = this.linkModal.querySelector('[data-field="text"]');
       const hrefInput = this.linkModal.querySelector('[data-field="href"]');
@@ -269,7 +296,20 @@
       if (hrefInput) hrefInput.value = '';
 
       this.linkModal.style.display = 'flex';
-      hrefInput?.focus();
+      this.linkModal.setAttribute('aria-hidden', 'false');
+      window.requestAnimationFrame(() => {
+        hrefInput?.focus();
+        hrefInput?.select?.();
+      });
+    }
+
+    _closeLinkModal() {
+      if (!this.linkModal) return;
+
+      this.linkModal.style.display = 'none';
+      this.linkModal.setAttribute('aria-hidden', 'true');
+      this._restoreFocus(this._modalRestoreFocus);
+      this._modalRestoreFocus = null;
     }
 
     /* ── Image Upload ── */
@@ -354,18 +394,42 @@
       if (this.previewEl) this.previewEl.style.display  = showPreview ? '' : 'none';
       if (this.sourceEl)  this.sourceEl.style.display   = showSource  ? '' : 'none';
 
+      if (this.contentEl) this.contentEl.setAttribute('aria-hidden', String(!showContent));
+      if (this.previewEl) this.previewEl.setAttribute('aria-hidden', String(!showPreview));
+      if (this.sourceEl) this.sourceEl.setAttribute('aria-hidden', String(!showSource));
+
       if (showPreview && this.previewInner) {
         this.previewInner.innerHTML = this.contentEl.innerHTML;
       }
       if (showSource && this.sourceEl) {
         this.sourceEl.value = this._formatHtml(this.contentEl.innerHTML);
       }
+
+      const focusTarget = showContent ? this.contentEl : showPreview ? this.previewEl : this.sourceEl;
+      window.requestAnimationFrame(() => {
+        focusTarget?.focus?.({ preventScroll: true });
+      });
     }
 
     _toggleFullscreen() {
+      this._fullscreenRestoreFocus = document.activeElement;
       this._isFullscreen = !this._isFullscreen;
       this.editorEl?.classList.toggle('fw-editor--fullscreen', this._isFullscreen);
       document.body.style.overflow = this._isFullscreen ? 'hidden' : '';
+      const fullscreenBtn = this.toolbar?.querySelector('[data-fw-action="toggleFullscreen"]');
+      if (fullscreenBtn) {
+        fullscreenBtn.setAttribute('aria-pressed', String(this._isFullscreen));
+      }
+
+      window.requestAnimationFrame(() => {
+        if (this._isFullscreen) {
+          this.contentEl?.focus({ preventScroll: true });
+        } else {
+          this._restoreFocus(this._fullscreenRestoreFocus || this.contentEl);
+          this._fullscreenRestoreFocus = null;
+        }
+      });
+
       this._dispatch('fw:fullscreen', { active: this._isFullscreen });
     }
 
@@ -504,6 +568,27 @@
         const block = document.queryCommandValue('formatBlock').toLowerCase();
         headingSelect.value = ['h1','h2','h3','h4','h5','h6'].includes(block) ? block : 'p';
       }
+    }
+
+    _getFocusableElements(container) {
+      if (!container) return [];
+
+      return Array.from(container.querySelectorAll([
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        'a[href]',
+        '[tabindex]:not([tabindex="-1"])',
+      ].join(','))).filter(element => element.offsetParent !== null);
+    }
+
+    _restoreFocus(target) {
+      if (!target || typeof target.focus !== 'function') return;
+
+      window.requestAnimationFrame(() => {
+        target.focus({ preventScroll: true });
+      });
     }
 
     /* ── Plugin Loader ── */

@@ -11,7 +11,7 @@
 
 @php
     $errorKey = str_replace(['[', ']'], ['.', ''], $name);
-    $hasError = $errors->has($errorKey);
+    $hasError = isset($errors) && $errors->has($errorKey);
 @endphp
 
 <div
@@ -168,13 +168,16 @@
             id="{{ $editorId }}-content"
             class="fw-editor__content"
             contenteditable="{{ $readonly ? 'false' : 'true' }}"
+            role="textbox"
+            aria-multiline="true"
+            tabindex="0"
             data-placeholder="{{ $placeholder }}"
             style="min-height: {{ $height }}px"
             spellcheck="{{ config('flexwave-wysiwyg.defaults.spellcheck', true) ? 'true' : 'false' }}"
         ></div>
 
         {{-- Preview Panel --}}
-        <div id="{{ $editorId }}-preview" class="fw-editor__preview" style="display:none; min-height: {{ $height }}px">
+        <div id="{{ $editorId }}-preview" class="fw-editor__preview" tabindex="-1" aria-hidden="true" style="display:none; min-height: {{ $height }}px">
             <div class="fw-editor__preview-inner"></div>
         </div>
 
@@ -183,6 +186,7 @@
             id="{{ $editorId }}-source"
             class="fw-editor__source"
             style="display:none; min-height: {{ $height }}px"
+            aria-hidden="true"
             spellcheck="false"
         ></textarea>
 
@@ -209,11 +213,11 @@
     @enderror
 
     {{-- Link modal --}}
-    <div id="{{ $editorId }}-link-modal" class="fw-modal" role="dialog" aria-modal="true" aria-label="Insert link" style="display:none">
+    <div id="{{ $editorId }}-link-modal" class="fw-modal" role="dialog" aria-modal="true" aria-label="Insert link" aria-hidden="true" style="display:none">
         <div class="fw-modal__backdrop"></div>
         <div class="fw-modal__box">
             <div class="fw-modal__header">
-                <h3 class="fw-modal__title">Insert Link</h3>
+                <h2 class="fw-modal__title">Insert Link</h2>
                 <button type="button" class="fw-modal__close" aria-label="Close">&times;</button>
             </div>
             <div class="fw-modal__body">
