@@ -1,14 +1,13 @@
 {
-    "name": "flexwave/wysiwyg",
+    "name": "hard007/wysiwyg",
     "description": "A modern, feature-rich WYSIWYG editor package for Laravel 10+",
     "type": "library",
     "keywords": ["laravel", "wysiwyg", "editor", "rich-text", "flexwave"],
     "license": "MIT",
     "authors": [
         {
-            "name": "FlexWave",
-            "email": "jorian@flexwave.nl",
-            "homepage": "https://flex-wave.nl"
+            "name": "Hard-007",
+            "homepage": "https://github.com/Hard007/wysiwyg"
         }
     ],
     "require": {

@@ -10,8 +10,9 @@
 ])
 
 @php
+    $errorBag = $errors ?? new \Illuminate\Support\ViewErrorBag();
     $errorKey = str_replace(['[', ']'], ['.', ''], $name);
-    $hasError = isset($errors) && $errors->has($errorKey);
+    $hasError = $errorBag->has($errorKey);
 @endphp
 
 <div
@@ -208,9 +209,9 @@
     >
 
     {{-- Validation error --}}
-    @error($errorKey)
-        <p class="fw-editor__error" role="alert">{{ $message }}</p>
-    @enderror
+     @if($errorBag->has($errorKey))
+        <p class="fw-editor__error" role="alert">{{ $errorBag->first($errorKey) }}</p>
+    @endif
 
     {{-- Link modal --}}
     <div id="{{ $editorId }}-link-modal" class="fw-modal" role="dialog" aria-modal="true" aria-label="Insert link" aria-hidden="true" style="display:none">
